@@ -6,6 +6,52 @@ from .models import Task
 from .serializers import TaskSerializer
 from django.core.exceptions import ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
+from datetime import datetime
+from django.db.models import Count, Sum
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])  # Ensure only authenticated users can access
+def task_stats(request):
+    # Extract query parameters for filtering
+    date = request.query_params.get('date', None)
+    employee = request.query_params.get('employee', None)
+    tags = request.query_params.get('tags', None)
+    status_filter = request.query_params.get('status', None)
+
+    # Build the filter dictionary based on the query parameters
+    filters = {}
+    if date:
+        try:
+            filters['date'] = datetime.strptime(date, '%Y-%m-%d').date()  # Convert to date if needed
+        except ValueError:
+            return Response({"error": "Invalid date format. Use YYYY-MM-DD."}, status=status.HTTP_400_BAD_REQUEST)
+    if employee:
+        filters['employee'] = employee
+    if tags:
+        filters['tags'] = tags
+    if status_filter:
+        filters['status'] = status_filter
+
+    # Assuming you have a Task model or a similar structure
+    try:
+        tasks = Task.objects.filter(**filters)
+        
+        # Calculate total hours, most-used tags, and pending approvals
+        total_hours = tasks.aggregate(Sum('hours_spent'))['hours_spent__sum'] or 0
+        most_used_tags = tasks.values('tags').annotate(count=Count('tags')).order_by('-count')[:5]
+        pending_approvals = tasks.filter(status='pending').count()
+
+        # Return the stats as JSON
+        return Response({
+            "total_hours": total_hours,
+            "most_used_tags": most_used_tags,
+            "pending_approvals": pending_approvals
+        })
+
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 class TaskCreateView(APIView):
     permission_classes = [IsAuthenticated]
