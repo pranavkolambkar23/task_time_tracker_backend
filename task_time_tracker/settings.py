@@ -1,6 +1,8 @@
 from pathlib import Path
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -29,10 +31,12 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'rest_framework',
     'tracker',
-    'accounts'
+    'accounts',
+    'corsheaders',
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # Add this line
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -126,4 +130,22 @@ REST_FRAMEWORK = {
     ],
 }
 
-# adding commits
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=300),  # 15 minutes for Access Token
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=1),     # 1 day for Refresh Token
+    'ROTATE_REFRESH_TOKENS': True,
+    'BLACKLIST_AFTER_ROTATION': True,
+    'ALGORITHM': 'HS256',
+    'SIGNING_KEY': SECRET_KEY,
+    'VERIFYING_KEY': None,
+    'AUDIENCE': None,
+    'ISSUER': None,
+    'JWK_URL': None,
+    'LEEWAY': 0,
+}
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:3000",  # React development server
+]
+CORS_ALLOW_CREDENTIALS = True
+

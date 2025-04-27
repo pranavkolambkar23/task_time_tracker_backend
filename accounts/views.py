@@ -16,7 +16,7 @@ class RegisterView(APIView):
             user = serializer.save()
             user_data = CustomUserSerializer(user).data  # serialize the saved user
             return Response({
-                "message": "User registered successfully",
+                "detail": "User registered successfully",
                 "user": user_data
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
