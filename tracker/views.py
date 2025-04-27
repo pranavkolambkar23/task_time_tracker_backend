@@ -49,10 +49,22 @@ class TaskListView(ListAPIView):
         else:
             queryset = Task.objects.none()  # Or you could raise PermissionDenied()
 
-        # Optional date filter
+        # Optional filters from query params
         date_filter = self.request.query_params.get('date')
         if date_filter:
             queryset = queryset.filter(date=date_filter)
+
+        employee_filter = self.request.query_params.get('employee')
+        if employee_filter:
+            queryset = queryset.filter(employee=employee_filter)
+
+        tags_filter = self.request.query_params.get('tags')
+        if tags_filter:
+            queryset = queryset.filter(tags__icontains=tags_filter)
+
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
 
         return queryset
 
